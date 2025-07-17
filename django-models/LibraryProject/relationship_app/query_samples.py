@@ -7,6 +7,6 @@ library = Library.objects.get(name=library_name)
 books = library.books.all()
 
 author = Author.objects.filter(name=author_name)
-book = Book.objects.get(author=author)
+book = Book.objects.filter(author=author)
 
 librarian = library.librarian
