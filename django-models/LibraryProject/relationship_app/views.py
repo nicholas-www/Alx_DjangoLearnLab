@@ -1,8 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import ListView
 
-from bookshelf.models import Book
-from relationship_app.models import Library
+from .models import Library, Book
 
 # Create your views here.
 
