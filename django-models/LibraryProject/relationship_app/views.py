@@ -13,7 +13,6 @@ from .models import UserProfile
 
 
 
-
 from .models import Library, Book
 
 # Create your views here.
@@ -81,7 +80,7 @@ def is_member(user):
     return hasattr(user, 'userprofile') and user.userprofile.role == 'Member'
 
 @user_passes_test(is_admin)
-def Admin(request):
+def admin_view(request):
     return render(request, 'relationship_app/admin_view.html')
 
 @user_passes_test(is_librarian)
