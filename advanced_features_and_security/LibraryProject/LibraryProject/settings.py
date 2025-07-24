@@ -27,6 +27,21 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# -- Browser Security Headers --
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'  # Protects from clickjacking
+
+# -- Cookie Security --
+CSRF_COOKIE_SECURE = True     # Sends CSRF cookie over HTTPS only
+SESSION_COOKIE_SECURE = True  # Sends session cookie over HTTPS only
+
+# Optional but good to have
+SECURE_HSTS_SECONDS = 3600  # Enables HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+
 AUTH_USER_MODEL = 'bookshelf.CustomUser'
 
 
@@ -44,6 +59,8 @@ INSTALLED_APPS = [
     'relationship_app'
 ]
 
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -55,6 +72,16 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'LibraryProject.urls'
+
+INSTALLED_APPS += ['csp']
+MIDDLEWARE.insert(0, 'csp.middleware.CSPMiddleware')
+
+# Example Policy
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", 'https://fonts.googleapis.com')
+CSP_SCRIPT_SRC = ("'self'", 'https://trusted.cdn.com')
+CSP_FONT_SRC = ("'self'", 'https://fonts.gstatic.com')
+
 
 TEMPLATES = [
     {
