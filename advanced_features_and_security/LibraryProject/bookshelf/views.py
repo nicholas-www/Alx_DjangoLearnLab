@@ -6,10 +6,10 @@ from .forms import ExampleForm
 
 @permission_required('bookshelf.can_view', raise_exception=True)
 def book_list(request):
-    pass
+    return render(request, 'bookshelf/book_list.html')
 
 def example_form(request):
     form = ExampleForm()
 
     context = {'form': form}
-    return render(request, 'bookshelf/example_form.html', context)
+    return render(request, 'bookshelf/form_example.html', context)
