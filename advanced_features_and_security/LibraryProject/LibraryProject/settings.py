@@ -103,6 +103,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # Enable basic browser XSS protection
 SECURE_BROWSER_XSS_FILTER = True
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 TEMPLATES = [
     {
