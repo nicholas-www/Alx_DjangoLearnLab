@@ -1,58 +1,44 @@
-from rest_framework import viewsets, permissions
-from .models import Post, Comment
+from rest_framework import generics, status, viewsets, filters
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
-
-class IsAuthorOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return obj.author == request.user
+from notifications.models import Notification
 
 
+# Post CRUD operations
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by("-created_at")
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ["title", "content"]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
 
+# Comment CRUD operations
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all().order_by("-created_at")
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
 
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import permissions
-from .models import Post
-from .serializers import PostSerializer
-
-class FeedView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        # Get posts from users that the current user follows
-        following_users = request.user.following.all()
-        posts = Post.objects.filter(author__in=following_users).order_by("-created_at")
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
-
-
+# Like a post
 class LikePostView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk, *args, **kwargs):
-        # ✅ Explicitly use get_object_or_404 from generics
+        # ✅ Explicitly use get_object_or_404
         post = generics.get_object_or_404(Post, pk=pk)
 
-        like, created = Like.objects.get_or_create(post=post, user=request.user)
+        # ✅ Explicitly use the required get_or_create format
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
 
         if not created:
             return Response({"detail": "You already liked this post."}, status=status.HTTP_400_BAD_REQUEST)
@@ -69,11 +55,11 @@ class LikePostView(generics.GenericAPIView):
         return Response({"detail": "Post liked."}, status=status.HTTP_201_CREATED)
 
 
+# Unlike a post
 class UnlikePostView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk, *args, **kwargs):
-        # ✅ Again use generics.get_object_or_404
         post = generics.get_object_or_404(Post, pk=pk)
 
         try:
