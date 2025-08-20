@@ -8,6 +8,7 @@ from rest_framework import status, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import RegistrationSerializer, LoginSerializer, UserSerializer
+from rest_framework import filters
 
 class RegisterView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -54,3 +55,14 @@ class ProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+
+
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all().order_by("-created_at")
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["title", "content"]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
