@@ -1,5 +1,5 @@
-from rest_framework import generics, status, viewsets, filters
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework import generics, status, viewsets, filters, permissions
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Post, Comment, Like
@@ -11,7 +11,7 @@ from notifications.models import Notification
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by("-created_at")
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ["title", "content"]
 
@@ -23,7 +23,7 @@ class PostViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all().order_by("-created_at")
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -31,13 +31,13 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 # Like a post
 class LikePostView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk, *args, **kwargs):
-        # ✅ Explicitly use get_object_or_404
+        # ✅ Explicit get_object_or_404
         post = generics.get_object_or_404(Post, pk=pk)
 
-        # ✅ Explicitly use the required get_or_create format
+        # ✅ Explicit get_or_create
         like, created = Like.objects.get_or_create(user=request.user, post=post)
 
         if not created:
@@ -57,7 +57,7 @@ class LikePostView(generics.GenericAPIView):
 
 # Unlike a post
 class UnlikePostView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk, *args, **kwargs):
         post = generics.get_object_or_404(Post, pk=pk)
