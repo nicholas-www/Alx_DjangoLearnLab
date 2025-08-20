@@ -13,6 +13,14 @@
   {% endfor %}
 </ul>
 
+<p>Tags:
+  {% for tag in post.tags.all %}
+    <a href="{% url 'posts-by-tag' tag.name %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
+  {% empty %}
+    No tags
+  {% endfor %}
+</p>
+
 {% if user.is_authenticated %}
   <h4>Add a Comment</h4>
   <form method="post" action="{% url 'comment-add' post.id %}">
