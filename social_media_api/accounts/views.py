@@ -10,6 +10,35 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import RegistrationSerializer, LoginSerializer, UserSerializer
 from rest_framework import filters
 
+
+
+from rest_framework import generics, permissions, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from .models import CustomUser
+from .serializers import UserSerializer
+
+
+class FollowUserView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, user_id):
+        target_user = get_object_or_404(CustomUser, id=user_id)
+        request.user.following.add(target_user)
+        return Response({"detail": f"You are now following {target_user.username}"}, status=status.HTTP_200_OK)
+
+
+class UnfollowUserView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, user_id):
+        target_user = get_object_or_404(CustomUser, id=user_id)
+        request.user.following.remove(target_user)
+        return Response({"detail": f"You unfollowed {target_user.username}"}, status=status.HTTP_200_OK)
+
+
+
 class RegisterView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [permissions.AllowAny]
