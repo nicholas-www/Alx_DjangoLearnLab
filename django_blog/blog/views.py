@@ -1,4 +1,3 @@
-
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login
@@ -13,6 +12,8 @@ def register(request):
             login(request, user)
             messages.success(request, "Registration successful!")
             return redirect("profile")
+        else:
+            messages.error(request, "Please correct the error below.")
     else:
         form = RegisterForm()
     return render(request, "blog/register.html", {"form": form})
