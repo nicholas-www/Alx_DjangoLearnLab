@@ -95,3 +95,71 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 5,
     "DEFAULT_FILTER_BACKENDS": ["rest_framework.filters.SearchFilter"],
 }
+
+
+
+DEBUG = os.getenv("DEBUG", "0") == "1"
+
+# e.g. "yourapp.herokuapp.com", "api.example.com"
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else ["*"]
+
+SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE_ME_IN_PROD")
+
+# ---- Database (PostgreSQL in prod) ----
+# Set DATABASE_URL like: postgres://USER:PASSWORD@HOST:PORT/DBNAME
+# If DATABASE_URL missing, fall back to sqlite for local dev.
+import dj_database_url
+DATABASES = {
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR/'db.sqlite3'}",
+        conn_max_age=600,
+        ssl_require=os.getenv("DB_SSL_REQUIRED", "0") == "1",
+    )
+}
+
+# ---- Static & Media ----
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# WhiteNoise for static files in prod
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+# Let WhiteNoise compress and cache-bust static assets
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# ---- DRF (unchanged) ----
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 5,
+}
+
+# ---- Security headers for prod ----
+if not DEBUG:
+    SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "1") == "1"
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
+    # HSTS (tweak max_age once you confirm TLS works)
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = False
